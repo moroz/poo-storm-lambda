@@ -35,7 +35,7 @@ func buildCreateCommentsTableInput() *dynamodb.CreateTableInput {
 			},
 			{
 				AttributeName: aws.String("id"),
-				AttributeType: types.ScalarAttributeTypeS,
+				AttributeType: types.ScalarAttributeTypeB,
 			},
 		},
 		KeySchema: []types.KeySchemaElement{

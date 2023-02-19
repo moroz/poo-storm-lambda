@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -30,4 +31,22 @@ func CreateLocalClient() *dynamodb.Client {
 	}
 
 	return dynamodb.NewFromConfig(cfg)
+}
+
+func CreateProdClient() *dynamodb.Client {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+
+	if err != nil {
+		panic(err)
+	}
+
+	return dynamodb.NewFromConfig(cfg)
+}
+
+func CreateClient() *dynamodb.Client {
+	if os.Getenv("USE_LOCAL_DYNAMODB") == "true" {
+		return CreateLocalClient()
+	} else {
+		return CreateProdClient()
+	}
 }

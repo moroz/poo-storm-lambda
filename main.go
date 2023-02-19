@@ -1,10 +1,22 @@
 package main
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
+
+var tableCreated bool = false
+
+func init() {
+	if tableCreated {
+		return
+	}
+	log.Println("Creating table...")
+	client := CreateClient()
+	CreateTableIfNotExists(client)
+	tableCreated = true
+}
 
 func main() {
-	client := CreateLocalClient()
-	if err := CreateTable(client); err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println("Hello world!")
 }
