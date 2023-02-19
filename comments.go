@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -19,10 +20,19 @@ type CreateCommentInput struct {
 }
 
 type Comment struct {
-	ID        []byte `dynamodbav:"id" json:"id"`
-	Body      string `dynamodbav:"body" json:"body"`
-	Signature string `dynamodbav:"signature" json:"signature"`
-	Url       string `dynamodbav:"url" json:"url"`
+	ID        uuid.UUIDv7 `dynamodbav:"id" json:"id"`
+	Body      string      `dynamodbav:"body" json:"body"`
+	Signature string      `dynamodbav:"signature" json:"signature"`
+	Url       string      `dynamodbav:"url" json:"url"`
+}
+
+func (c Comment) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"id":        c.ID.ToString(),
+		"body":      c.Body,
+		"signature": c.Signature,
+		"url":       c.Url,
+	})
 }
 
 func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
@@ -30,7 +40,7 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 	id := generator.Next()
 
 	newComment := &Comment{
-		ID:        id[:],
+		ID:        id,
 		Body:      input.Body,
 		Signature: input.Signature,
 		Url:       input.Url,

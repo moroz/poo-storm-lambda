@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/events"
+	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
@@ -34,17 +34,16 @@ func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest)
 	}
 }
 
-// func main() {
-// 	runtime.Start(handleRequest)
-// }
-
 func main() {
-	res, err := ListComments(client, "/blog/test")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, comment := range *res {
-		fmt.Println(comment.Url, comment.Body, comment.ID)
-	}
+	runtime.Start(handleRequest)
 }
+
+// func main() {
+// 	res, err := ListComments(client, "/blog/test")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	json, err := json.Marshal(res)
+// 	fmt.Println(string(json))
+// }
