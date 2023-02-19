@@ -1,0 +1,23 @@
+version: "0.2"
+
+env:
+  variables:
+    GOOS: linux
+    GOARCH: amd64
+    CGO_ENABLED: "0"
+
+phases:
+  install:
+    runtime-versions:
+      golang: latest
+
+  build:
+    commands:
+      - go get ./...
+      - go build -o main .
+      - zip main.zip main
+      
+  post_build:
+    commands:
+      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file="fileb://main.zip"
+      - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
