@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/moroz/poo-storm-lambda/api"
+	"github.com/moroz/poo-storm-lambda/models"
 )
 
 var tableCreated bool = false
@@ -18,8 +20,8 @@ func init() {
 		return
 	}
 	log.Println("Creating table...")
-	client = CreateClient()
-	CreateTableIfNotExists(client)
+	client = models.CreateClient()
+	models.CreateTableIfNotExists(client)
 	tableCreated = true
 }
 
@@ -29,7 +31,7 @@ func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest)
 	if request.Body != "" && request.RawPath == "/comments" {
 		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: 200}, nil
 	} else {
-		return HandleListCommentsRequest(client, request.QueryStringParameters["url"])
+		return api.HandleListCommentsRequest(client, request.QueryStringParameters["url"])
 		// return events.LambdaFunctionURLResponse{Body: request.RawQueryString, StatusCode: 200}, nil
 	}
 }

@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
-
-const TABLE_NAME = "Comments"
 
 func tableExists(d *dynamodb.Client, name string) bool {
 	tables, err := d.ListTables(context.TODO(), &dynamodb.ListTablesInput{})

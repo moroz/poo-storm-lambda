@@ -15,4 +15,7 @@ package: build
 deploy: package
 	aws lambda update-function-code --function-name $(FUNCTION_NAME) --zip-file="fileb://main.zip"
 
+clean:
+	rm main main.zip
+
 FORCE: ;

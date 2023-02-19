@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/uuid6/uuid6go-proto"
 )
+
+const TABLE_NAME = "Comments"
 
 type CreateCommentInput struct {
 	Body      string `json:"body"`

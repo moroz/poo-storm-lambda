@@ -1,4 +1,4 @@
-module poo_storm
+module github.com/moroz/poo-storm-lambda
 
 go 1.19
 
