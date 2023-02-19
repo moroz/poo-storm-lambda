@@ -6,7 +6,9 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/pkg/errors"
 	uuid "github.com/uuid6/uuid6go-proto"
 )
 
@@ -16,26 +18,18 @@ type CreateCommentInput struct {
 	Url       string `json:"url"`
 }
 
-type NewComment struct {
-	ID        []byte `dynamodbav:"id"`
-	Body      string `dynamodbav:"body"`
-	Signature string `dynamodbav:"signature"`
-	Url       string `dynamodbav:"url"`
-}
-
-func UUIDToBytes(uuid uuid.UUIDv7) []byte {
-	result := make([]byte, 16)
-	for i, b := range uuid {
-		result[i] = b
-	}
-	return result
+type Comment struct {
+	ID        []byte `dynamodbav:"id" json:"id"`
+	Body      string `dynamodbav:"body" json:"body"`
+	Signature string `dynamodbav:"signature" json:"signature"`
+	Url       string `dynamodbav:"url" json:"url"`
 }
 
 func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 	generator := &uuid.UUIDv7Generator{}
 	id := generator.Next()
 
-	newComment := &NewComment{
+	newComment := &Comment{
 		ID:        id[:],
 		Body:      input.Body,
 		Signature: input.Signature,
@@ -60,4 +54,26 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 	log.Println(result)
 
 	return nil
+}
+
+func ListComments(d *dynamodb.Client, url string) (*[]Comment, error) {
+	keyEx := expression.Key("url").Equal(expression.Value(url))
+	expr, err := expression.NewBuilder().WithKeyCondition(keyEx).Build()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to serialize key condition expression")
+	}
+
+	query := &dynamodb.QueryInput{
+		TableName:                 aws.String(TABLE_NAME),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.Condition(),
+	}
+
+	response, err := d.Query(context.TODO(), query)
+	if err != nil {
+
+	}
+
+	return nil, nil
 }
