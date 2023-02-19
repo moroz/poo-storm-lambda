@@ -3,6 +3,7 @@ module poo_storm
 go 1.19
 
 require (
+	github.com/aws/aws-lambda-go v1.37.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.17.4 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.18.13 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.13 // indirect
