@@ -67,13 +67,16 @@ func ListComments(d *dynamodb.Client, url string) (*[]Comment, error) {
 		TableName:                 aws.String(TABLE_NAME),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.Condition(),
+		KeyConditionExpression:    expr.KeyCondition(),
 	}
 
-	_, err = d.Query(context.TODO(), query)
+	result, err := d.Query(context.TODO(), query)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	var comments []Comment
+	attributevalue.UnmarshalListOfMaps(result.Items, &comments)
+
+	return &comments, nil
 }
