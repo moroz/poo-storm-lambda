@@ -70,9 +70,9 @@ func ListComments(d *dynamodb.Client, url string) (*[]Comment, error) {
 		KeyConditionExpression:    expr.Condition(),
 	}
 
-	response, err := d.Query(context.TODO(), query)
+	_, err = d.Query(context.TODO(), query)
 	if err != nil {
-
+		return nil, err
 	}
 
 	return nil, nil
