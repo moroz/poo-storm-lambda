@@ -27,3 +27,36 @@ func HandleListCommentsRequest(d *dynamodb.Client, url string) (events.LambdaFun
 
 	return events.LambdaFunctionURLResponse{Body: string(json), StatusCode: 200}, nil
 }
+
+func HandleCreateCommentRequest(d *dynamodb.Client, body string) (events.LambdaFunctionURLResponse, error) {
+	var input models.CreateCommentInput
+	err := json.Unmarshal([]byte(body), &input)
+	if err != nil {
+		return events.LambdaFunctionURLResponse{
+			StatusCode: 400,
+			Body:       `{"error":"Bad Request"}`,
+		}, err
+	}
+
+	successResponse := events.LambdaFunctionURLResponse{
+		StatusCode: 201,
+		Body:       `{"status":"Created"}`,
+	}
+
+	// "I am a robot" is a CAPTCHA-like field in the
+	// form, hidden to humans. If we are dealing with a robot,
+	// we do not store comments and pretend that we did
+	if input.IAmARobot {
+		return successResponse, nil
+	}
+
+	err = models.CreateComment(d, &input)
+	if err != nil {
+		return events.LambdaFunctionURLResponse{
+			StatusCode: 422,
+			Body:       `{"error":"Unprocessable entity"}`,
+		}, err
+	}
+
+	return successResponse, nil
+}

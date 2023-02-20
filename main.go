@@ -29,23 +29,12 @@ func init() {
 func handleRequest(ctx context.Context, request events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
 	// non-null body and path == '/comments': treat as POST request
 	if request.Body != "" && request.RawPath == "/comments" {
-		return events.LambdaFunctionURLResponse{Body: request.Body, StatusCode: 200}, nil
+		return api.HandleCreateCommentRequest(client, request.Body)
 	} else {
 		return api.HandleListCommentsRequest(client, request.QueryStringParameters["url"])
-		// return events.LambdaFunctionURLResponse{Body: request.RawQueryString, StatusCode: 200}, nil
 	}
 }
 
 func main() {
 	runtime.Start(handleRequest)
 }
-
-// func main() {
-// 	res, err := ListComments(client, "/blog/test")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	json, err := json.Marshal(res)
-// 	fmt.Println(string(json))
-// }

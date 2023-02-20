@@ -16,9 +16,12 @@ import (
 const TABLE_NAME = "Comments"
 
 type CreateCommentInput struct {
-	Body      string `json:"body"`
-	Signature string `json:"signature"`
-	Url       string `json:"url"`
+	Body      string  `json:"body"`
+	Signature string  `json:"signature"`
+	Url       string  `json:"url"`
+	Website   *string `json:"website"`
+	Email     string  `json:"email"`
+	IAmARobot bool    `json:"iAmARobot"`
 }
 
 type Comment struct {
