@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -47,14 +48,26 @@ func HandleCreateCommentRequest(d *dynamodb.Client, body string) (events.LambdaF
 	// form, hidden to humans. If we are dealing with a robot,
 	// we do not store comments and pretend that we did
 	if input.IAmARobot {
+		log.Println("Bot traffic detected!")
 		return successResponse, nil
 	}
 
 	err = models.CreateComment(d, &input)
 	if err != nil {
+		log.Println(err)
 		return events.LambdaFunctionURLResponse{
 			StatusCode: 422,
 			Body:       `{"error":"Unprocessable entity"}`,
+		}, err
+	}
+
+	client := models.CreateCFClient()
+	err = models.InvalidateCommentCache(client, input.Url)
+	if err != nil {
+		log.Println(err)
+		return events.LambdaFunctionURLResponse{
+			StatusCode: 500,
+			Body:       err.Error(),
 		}, err
 	}
 

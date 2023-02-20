@@ -61,12 +61,10 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 		Item:      item,
 	}
 
-	result, err := d.PutItem(context.TODO(), request)
+	_, err = d.PutItem(context.TODO(), request)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println(result)
 
 	return nil
 }
