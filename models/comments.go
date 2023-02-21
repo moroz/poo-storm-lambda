@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -25,18 +26,23 @@ type CreateCommentInput struct {
 }
 
 type Comment struct {
-	ID        uuid.UUIDv7 `dynamodbav:"id" json:"id"`
-	Body      string      `dynamodbav:"body" json:"body"`
-	Signature string      `dynamodbav:"signature" json:"signature"`
-	Url       string      `dynamodbav:"url" json:"url"`
+	ID         uuid.UUIDv7 `dynamodbav:"id" json:"id"`
+	Email      string      `dynamodbav:"email" json:"-"`
+	Body       string      `dynamodbav:"body" json:"body"`
+	Signature  string      `dynamodbav:"signature" json:"signature"`
+	Url        string      `dynamodbav:"url" json:"url"`
+	Website    *string     `dynamodbav:"website" json:"website"`
+	InsertedAt int64       `dynamodbav:"insertedAt" json:"insertedAt"`
 }
 
 func (c Comment) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
-		"id":        c.ID.ToString(),
-		"body":      c.Body,
-		"signature": c.Signature,
-		"url":       c.Url,
+		"id":         c.ID.ToString(),
+		"body":       c.Body,
+		"signature":  c.Signature,
+		"url":        c.Url,
+		"website":    c.Website,
+		"insertedAt": c.InsertedAt,
 	})
 }
 
@@ -45,10 +51,12 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 	id := generator.Next()
 
 	newComment := &Comment{
-		ID:        id,
-		Body:      input.Body,
-		Signature: input.Signature,
-		Url:       input.Url,
+		ID:         id,
+		Body:       input.Body,
+		Signature:  input.Signature,
+		Url:        input.Url,
+		Website:    input.Website,
+		InsertedAt: time.Now().Unix(),
 	}
 
 	item, err := attributevalue.MarshalMap(newComment)
