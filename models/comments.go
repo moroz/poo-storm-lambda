@@ -52,6 +52,7 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) (*Comment, err
 	newComment := &Comment{
 		ID:         id,
 		Body:       input.Body,
+		Email:      input.Email,
 		Signature:  input.Signature,
 		Url:        input.Url,
 		Website:    input.Website,
