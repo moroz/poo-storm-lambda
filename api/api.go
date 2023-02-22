@@ -29,40 +29,54 @@ func HandleListCommentsRequest(d *dynamodb.Client, url string) (events.LambdaFun
 	return events.LambdaFunctionURLResponse{Body: string(json), StatusCode: 200}, nil
 }
 
+type CreateCommentResponse struct {
+	Success bool            `json:"success"`
+	Errors  []string        `json:"errors"`
+	Comment *models.Comment `json:"comment"`
+}
+
+func createComment(d *dynamodb.Client, params *models.CreateCommentInput) (*CreateCommentResponse, error) {
+	if params.IAmARobot {
+		return &CreateCommentResponse{
+			Success: true,
+		}, nil
+	}
+
+	errors := params.Validate()
+	if len(errors) != 0 {
+		return &CreateCommentResponse{
+			Success: false,
+			Errors:  errors,
+		}, nil
+	}
+
+	comment, err := models.CreateComment(d, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateCommentResponse{
+		Success: true,
+		Comment: comment,
+	}, nil
+}
+
+func invalidateCache(url string) {
+	client := models.CreateCFClient()
+	models.InvalidateCommentCache(client, url)
+}
+
 func HandleCreateCommentRequest(d *dynamodb.Client, body string) (events.LambdaFunctionURLResponse, error) {
 	var input models.CreateCommentInput
 	err := json.Unmarshal([]byte(body), &input)
 	if err != nil {
 		return events.LambdaFunctionURLResponse{
 			StatusCode: 400,
-			Body:       `{"error":"Bad Request"}`,
+			Body:       `{"success":false,"errors":["Bad Request"]}`,
 		}, err
 	}
 
-	successResponse := events.LambdaFunctionURLResponse{
-		StatusCode: 201,
-		Body:       `{"status":"Created"}`,
-	}
-
-	// "I am a robot" is a CAPTCHA-like field in the
-	// form, hidden to humans. If we are dealing with a robot,
-	// we do not store comments and pretend that we did
-	if input.IAmARobot {
-		log.Println("Bot traffic detected!")
-		return successResponse, nil
-	}
-
-	err = models.CreateComment(d, &input)
-	if err != nil {
-		log.Println(err)
-		return events.LambdaFunctionURLResponse{
-			StatusCode: 422,
-			Body:       `{"error":"Unprocessable entity"}`,
-		}, err
-	}
-
-	client := models.CreateCFClient()
-	err = models.InvalidateCommentCache(client, input.Url)
+	result, err := createComment(d, &input)
 	if err != nil {
 		log.Println(err)
 		return events.LambdaFunctionURLResponse{
@@ -71,5 +85,19 @@ func HandleCreateCommentRequest(d *dynamodb.Client, body string) (events.LambdaF
 		}, err
 	}
 
-	return successResponse, nil
+	encoded, _ := json.Marshal(result)
+
+	if result.Comment != nil {
+		invalidateCache(input.Url)
+	}
+
+	status := 200
+	if !result.Success {
+		status = 422
+	}
+
+	return events.LambdaFunctionURLResponse{
+		StatusCode: status,
+		Body:       string(encoded),
+	}, nil
 }

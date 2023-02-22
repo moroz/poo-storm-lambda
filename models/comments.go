@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -46,7 +45,7 @@ func (c Comment) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
+func CreateComment(d *dynamodb.Client, input *CreateCommentInput) (*Comment, error) {
 	generator := &uuid.UUIDv7Generator{}
 	id := generator.Next()
 
@@ -61,7 +60,7 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 
 	item, err := attributevalue.MarshalMap(newComment)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	request := &dynamodb.PutItemInput{
@@ -71,10 +70,10 @@ func CreateComment(d *dynamodb.Client, input *CreateCommentInput) error {
 
 	_, err = d.PutItem(context.TODO(), request)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return nil
+	return newComment, nil
 }
 
 func ListComments(d *dynamodb.Client, url string) (*[]Comment, error) {
